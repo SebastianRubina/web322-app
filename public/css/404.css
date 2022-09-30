@@ -1,0 +1,31 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 800px;
+  margin: 0 auto;
+  font-family: "Ubuntu", sans-serif;
+}
+
+.sadface {
+  font-size: 10rem;
+  margin-bottom: 30px;
+}
+
+img {
+  width: 400px;
+}
+
+h1,
+h2,
+p,
+img {
+  margin-top: 15px;
+}
+
+#timer {
+  font-size: 2rem;
+}

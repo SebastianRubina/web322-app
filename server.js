@@ -10,10 +10,13 @@
 ********************************************************************************/ 
 var blogServices = require("./blog-service");
 var express = require("express");
+const path = require("path");
 var app = express();
 
 
 var HTTP_PORT = process.env.PORT || 8080;
+
+app.use(express.static('public'));
 
 function onHttpStart() {
 	console.log(`Express http server listening on: ${HTTP_PORT}`);
@@ -32,16 +35,36 @@ app.get("/about", (req, res) => {
 });
 
 app.get("/blog", (req, res) => {
-    res.send("<h1>Blog Page</h1>")
+    blogServices.getPublishedPosts().then((data) => {
+        res.json(data);
+    }).catch((err) => {
+        return {"message":err};
+    })
 });
 
 app.get("/posts", (req, res) => {
-    res.send("<h1>Posts Page</h1>")
+    blogServices.getAllPosts().then((data) => {
+        res.json(data);
+    }).catch((err) => {
+        return {"message":err};
+    })
 });
 
 app.get("/categories", (req, res) => {
-    res.send("<h1>Categories Page</h1>")
+    blogServices.getCategories().then((data) => {
+        res.json(data);
+    }).catch((err) => {
+        return {"message":err};
+    })
 });
 
+app.use((req, res) => {
+    res.status(404).sendFile(__dirname + '/views/404.html');
+})
 
-app.listen(HTTP_PORT, onHttpStart);
+
+blogServices.initialize().then(function() {
+    app.listen(HTTP_PORT, onHttpStart);
+}).catch(function(err) {
+    console.log(`Unable to start server: ${err}`);
+});

@@ -1,0 +1,18 @@
+.button-404 {
+  display: block;
+  text-decoration: none;
+  padding: 10px 20px;
+  color: rgb(216, 94, 51);
+  border: 1px solid rgb(216, 94, 51);
+  margin-top: 20px;
+  text-align: center;
+  max-width: 200px;
+  transition: all 0.2s ease-in;
+}
+
+.button-404:hover {
+  border-color: #fff;
+  color: #fff;
+  background: rgb(216, 94, 51);
+  text-decoration: none;
+}
