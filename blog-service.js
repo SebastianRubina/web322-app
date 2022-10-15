@@ -47,6 +47,42 @@ module.exports.getPublishedPosts = function() {
     })
 }
 
+module.exports.getPostsByCategory = function(category) {
+    return new Promise((resolve, reject) => {
+        let postsByCategory = posts.filter((post) => post.category === +category);
+
+        if (postsByCategory.length === 0) {
+            reject("no results returned");
+        } else {
+            resolve(postsByCategory);
+        }
+    })
+}
+
+module.exports.getPostsByMinDate = function(date) {
+    return new Promise((resolve, reject) => {
+        let postsByMinDate = posts.filter((post) => Date.parse(post.postDate) >= Date.parse(date));
+
+        if (postsByMinDate.length === 0) {
+            reject("no results returned");
+        } else {
+            resolve(postsByMinDate);
+        }
+    })
+}
+
+module.exports.getPostById = function(id) {
+    return new Promise((resolve, reject) => {
+        let selectedPost = posts.filter((post) => post.id === +id);
+
+        if (selectedPost.length === 0) {
+            reject("no result returned");
+        } else {
+            resolve(selectedPost);
+        }
+    })
+}
+
 module.exports.getCategories = function() {
     return new Promise((resolve, reject) => {
         if (categories.length === 0) {
@@ -55,4 +91,13 @@ module.exports.getCategories = function() {
             resolve(categories);
         }
     })
+}
+
+module.exports.addPost = function(postData) {
+    return new Promise(function(resolve, reject) {
+        postData.id = posts.length + 1;
+        postData.published = (postData.published) ? true : false;
+        posts.push(postData);
+        resolve();
+    });
 }
