@@ -1,0 +1,27 @@
+
+<head>
+    <link rel="stylesheet" href="/css/404.css">
+</head>
+<p class="sadface">:(</p>
+<h1>Uhm...</h1>
+<h2>Congratulations, you broke my website 🫤</h2>
+<p>I understand that you might be feeling guilty, and you definitely should. If it helps ease your pain and sadness, here, have a poutine</p>
+<img src="https://www.nrn.com/sites/nrn.com/files/poutine-flavor-of-the-week-promo.png" alt="poutine">
+<p>You will be redirected in <span id="timer"></span> seconds</p>
+
+<script>
+    setTimeout(function () {
+        window.location = "/";
+    }, 12000)
+
+    // Timer
+    let timerStart = 12;
+    const timer = document.getElementById("timer");
+    timer.innerHTML = `${timerStart}`;
+    let countdown = setInterval(() => {
+        timerStart--;
+        timer.innerHTML = `${timerStart}`;
+        if (timerStart <= 5) timer.style.color='red';
+    }, 1000);
+    countdown();
+</script>

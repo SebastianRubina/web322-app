@@ -59,6 +59,18 @@ module.exports.getPostsByCategory = function(category) {
     })
 }
 
+module.exports.getPublishedPostsByCategory = function(category) {
+    return new Promise((resolve, reject) => {
+        let publishedPostsByCategory = posts.filter((post) => (post.category === +category) && (post.published));
+
+        if (publishedPostsByCategory.length === 0) {
+            reject("no results returned");
+        } else {
+            resolve(publishedPostsByCategory);
+        }
+    })    
+}
+
 module.exports.getPostsByMinDate = function(date) {
     return new Promise((resolve, reject) => {
         let postsByMinDate = posts.filter((post) => Date.parse(post.postDate) >= Date.parse(date));
@@ -97,6 +109,15 @@ module.exports.addPost = function(postData) {
     return new Promise(function(resolve, reject) {
         postData.id = posts.length + 1;
         postData.published = (postData.published) ? true : false;
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+
+        today = yyyy + '-' + mm + '-' + dd;
+        
+        postData.postDate = today;
+
         posts.push(postData);
         resolve();
     });
