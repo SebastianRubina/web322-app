@@ -10,6 +10,7 @@
 *  Online (Cyclic) Link: https://kind-lime-dalmatian-hose.cyclic.app/
 ********************************************************************************/ 
 var blogServices = require("./blog-service");
+var authData = require("./auth-service")
 var express = require("express");
 const path = require("path");
 const multer = require("multer");
@@ -17,12 +18,33 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 const exphbs = require("express-handlebars");
 const stripJs = require("strip-js");
+const clientSessions = require("client-sessions");
 
 
 var app = express();
 
 app.use(express.static('public'));
 app.use(express.urlencoded({extended:true}));
+
+app.use(clientSessions({
+    cookieName: "session",
+    secret: "web322_a6",
+    duration: 2 * 60 * 10000,
+    activeDuration: 1000 * 60
+}));
+
+app.use(function(req, res, next) {
+    res.locals.session = req.session;
+    next();
+})
+
+function ensureLogin(req, res, next) {
+    if (!req.session.user) {
+        res.redirect("/login");
+    } else {
+        next();
+    }
+}
 
 app.engine('.hbs', exphbs.engine({ 
     extname: '.hbs',
@@ -139,7 +161,7 @@ app.get('/blog', async (req, res) => {
 
 });
 
-app.get('/posts', (req, res) => {
+app.get('/posts', ensureLogin, (req, res) => {
 
     let queryPromise = null;
 
@@ -159,7 +181,7 @@ app.get('/posts', (req, res) => {
 
 });
 
-app.post("/categories/add", (req,res)=>{
+app.post("/categories/add", ensureLogin, (req,res)=>{
         blogServices.addCategory(req.body).then(()=>{
             res.redirect("/categories");
         }).catch(err=>{
@@ -167,7 +189,7 @@ app.post("/categories/add", (req,res)=>{
         })
 });
 
-app.get("/categories/delete/:id", (req, res) => {
+app.get("/categories/delete/:id", ensureLogin, (req, res) => {
     blogServices.deleteCategoryById(req.params.id).
     then(() => {
         res.redirect("/categories");
@@ -176,7 +198,7 @@ app.get("/categories/delete/:id", (req, res) => {
     })
 });
 
-app.get("/posts/delete/:id", (req, res) => {
+app.get("/posts/delete/:id", ensureLogin, (req, res) => {
     blogServices.deletePostById(req.params.id)
     .then(() => {
         res.redirect("/posts");
@@ -185,7 +207,7 @@ app.get("/posts/delete/:id", (req, res) => {
     })
 });
 
-app.get('/post/:id', (req,res)=>{
+app.get('/post/:id', ensureLogin, (req,res)=>{
     blogServices.getPostById(req.params.id).then(data=>{
         res.json(data);
     }).catch(err=>{
@@ -193,7 +215,7 @@ app.get('/post/:id', (req,res)=>{
     });
 });
 
-app.get('/blog/:id', async (req, res) => {
+app.get('/blog/:id', ensureLogin, async (req, res) => {
 
     // Declare an object to store properties for the view
     let viewData = {};
@@ -244,7 +266,7 @@ app.get('/blog/:id', async (req, res) => {
     res.render("blog", {data: viewData})
 });
 
-app.get("/posts/add", (req, res) => {
+app.get("/posts/add", ensureLogin, (req, res) => {
     blogServices.getCategories().then((data) => {
         res.render('addPost', {
             layout: "main",
@@ -256,13 +278,13 @@ app.get("/posts/add", (req, res) => {
 });
 
 
-app.get("/categories/add", (req, res) => {
+app.get("/categories/add", ensureLogin, (req, res) => {
     res.render('addCategory', {
         layout: "main"
     })
 });
 
-app.post("/posts/add", upload.single("featureImage"), (req, res) => {
+app.post("/posts/add", ensureLogin, upload.single("featureImage"), (req, res) => {
     let streamUpload = (req) => {
         return new Promise((resolve, reject) => {
             let stream = cloudinary.uploader.upload_stream(
@@ -299,50 +321,7 @@ app.post("/posts/add", upload.single("featureImage"), (req, res) => {
     
 });
 
-// app.post("/posts/add", upload.single("featureImage"), (req,res)=>{
-
-//     if(req.file){
-//         let streamUpload = (req) => {
-//             return new Promise((resolve, reject) => {
-//                 let stream = cloudinary.uploader.upload_stream(
-//                     (error, result) => {
-//                         if (result) {
-//                             resolve(result);
-//                         } else {
-//                             reject(error);
-//                         }
-//                     }
-//                 );
-    
-//                 streamifier.createReadStream(req.file.buffer).pipe(stream);
-//             });
-//         };
-    
-//         async function upload(req) {
-//             let result = await streamUpload(req);
-//             console.log(result);
-//             return result;
-//         }
-    
-//         upload(req).then((uploaded)=>{
-//             processPost(uploaded.url);
-//         });
-//     }else{
-//         processPost("");
-//     }
-
-//     function processPost(imageUrl){
-//         req.body.featureImage = imageUrl;
-
-//         blogServices.addPost(req.body).then(post=>{
-//             res.redirect("/posts");
-//         }).catch(err=>{
-//             res.status(500).send(err);
-//         })
-//     }   
-// });
-
-app.get("/posts/:value", (req, res) => {
+app.get("/posts/:value", ensureLogin, (req, res) => {
     let id = req.params['value'];
     blogServices.getPostById(id).then((data) => {
         res.render("posts", {posts:data});
@@ -382,7 +361,7 @@ app.get("/posts", (req, res) => {
     }
 });
 
-app.get("/categories", (req, res) => {
+app.get("/categories", ensureLogin, (req, res) => {
     blogServices.getCategories().then((data) => {
         if (data.length > 0)
         res.render("categories", {categories: data});
@@ -393,12 +372,54 @@ app.get("/categories", (req, res) => {
     })
 });
 
+app.get("/login", (req, res) => {
+    res.render("login");
+})
+
+app.post("/login", (req, res) => {
+    req.body.userAgent - req.get('User-Agent');
+    authData.checkUser(req.body)
+    .then((user) => {
+        req.session.user = {
+            userName: user.userName,
+            email: user.email,
+            loginHistory: user.loginHistory
+        }
+        res.redirect("/posts");
+    })
+    .catch((err) => {
+        res.render("login", {errorMessage: err, userName: req.body.userName});
+    })
+});
+
+app.get("/register", (req, res) => {
+    res.render("register");
+})
+app.post("/register", (req, res) => {
+    authData.registerUser(req.body).then(() => {
+        res.render("register", {successMessage: "User created"});
+    }).catch((err) => {
+        res.render("register", {errorMessage: err, userName: req.body.userName});
+    })
+})
+
+app.get("/logout", (req, res) => {
+    req.session.reset();
+    res.redirect("/");
+})
+
+app.get("/userHistory", ensureLogin, (req, res) => {
+    res.render("userHistory");
+})
+
 app.use((req, res) => {
     res.status(404).render("404", {layout:"main"});
 })
 
 
-blogServices.initialize().then(function() {
+blogServices.initialize()
+.then(authData.initialize)
+.then(function() {
     app.listen(HTTP_PORT, onHttpStart);
 }).catch(function(err) {
     console.log(`Unable to start server: ${err}`);

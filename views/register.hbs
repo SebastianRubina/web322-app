@@ -1,0 +1,40 @@
+<div class="row">
+    <div class="col-md-12">
+        <h2>Register</h2>
+        {{#if successMessage}}
+            <div class="alert alert-success"><strong>Success: </strong> {{successMessage}}</div>
+            <a href="/login" class="btn btn-success pull-right">Proceed to Login</a>
+        {{else}}
+            {{#if errorMessage}}
+                <div class="alert alert-danger"><strong>Error: </strong> {{errorMessage}}</div>
+            {{/if}}
+            <form action="/register" method="post">
+                <div class="row">
+                    <div class="col-md-12">
+                        <input type="text" class="form-control" id="userName" name="userName" placeholder="User Name" required value={{userName}}>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-12">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-12">
+                        <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm Password" required>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-12">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                    </div>
+                </div>
+                <br>
+                <input type="submit" value="Register" text="Register" class="btn btn-success pull-right">
+            </form>
+        {{/if}}
+    </div>
+</div>
